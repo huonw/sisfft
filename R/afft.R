@@ -1,17 +1,18 @@
-COST_RATIO = 0.5
-COST_RATIO_SQUARE = COST_RATIO * 0.5
+COST_RATIO <- 0.5
+COST_RATIO_SQUARE <- COST_RATIO * 0.5
 
-OPT_BOUND = 1e4
+OPT_BOUND <- 1e4
 
 # hack to distinguish these from vectors
-ESTIMATE_ONE_SPLIT = list(1)
-ESTIMATE_TWO_SPLITS = list(2)
+ESTIMATE_ONE_SPLIT <- list(1)
+ESTIMATE_TWO_SPLITS <- list(2)
 
+#' @export
 log_convolve <- function(log_pmf1, log_pmf2, alpha, delta = 0) {
   if (delta != 0) {
     no_shift(log_pmf1, log_pmf2, alpha, delta,
-                  pairwise = T,
-                  square_1 = F)[[1]]
+             pairwise = T,
+             square_1 = F)[[1]]
   } else {
     no_lower_bound(log_pmf1, log_pmf2, alpha)
   }
@@ -30,8 +31,8 @@ log_convolve_square <- function(log_pmf, alpha, delta = 0) {
 log_convolve_and_square <- function(log_pmf1, log_pmf2, alpha, delta = 0) {
   if (delta == 0) {
     # this is a suboptimal approach
-    co = convolve(log_pmf1, log_pmf2, alpha, 0)
-    sq = convolve_square(log_pmf1, alpha, 0)
+    co <- convolve(log_pmf1, log_pmf2, alpha, 0)
+    sq <- convolve_square(log_pmf1, alpha, 0)
     list(co, sq)
   } else {
     no_shift(log_pmf1, log_pmf2, alpha, delta,
@@ -40,33 +41,28 @@ log_convolve_and_square <- function(log_pmf1, log_pmf2, alpha, delta = 0) {
   }
 }
 
-pad_to_length <- function(v, len, fill = 0) {
-  stopifnot(length(v) <= len)
-  c(v, rep.int(fill, len - length(v)))
-}
-
 no_lower_bound <- function(log_pmf1, log_pmf2, alpha) {
-  list(true_conv_len, fft_conv_len) <- pairwise_convolution_lengths(length(log_pmf1),
+  list[true_conv_len, fft_conv_len] <- pairwise_convolution_lengths(length(log_pmf1),
                                                                     length(log_pmf2))
-  pmf1 = pad_to_length(exp(log_pmf1), fft_conv_len)
+  pmf1 <- pad_to_length(exp(log_pmf1), fft_conv_len)
 
-  fft1 = fft(pmf1)
-  list(direct, bad_places) <- direct_fft_conv(log_pmf1, pmf1, fft1,
+  fft1 <- fft(pmf1)
+  list[direct, bad_places] <- direct_fft_conv(log_pmf1, pmf1, fft1,
                                               log_pmf2,
                                               true_conv_len, fft_conv_len,
-                                              alpha, -Inf)
+                                              alpha, 0)
   used_nc <- use_nc_if_better(log_pmf1, ESTIMATE_ONE_SPLIT,
                               log_pmf2, ESTIMATE_TWO_SPLITS,
                               direct, bad_places,
                               COST_RATIO)
-  if (used_nc) {
-    return(direct);
+  if (!is.null(used_nc)) {
+    return(used_nc);
   }
 
   theta <- compute_theta(log_pmf1, log_pmf2)
-  list(s1, log_mgf1) <- shift(log_pmf1, theta)
-  list(s2, log_mgf2) <- shift(log_pmf2, theta)
-  convolved <- no_shift(s1, s2, alpha, -Inf,
+  list[s1, log_mgf1] <- shift(log_pmf1, theta)
+  list[s2, log_mgf2] <- shift(log_pmf2, theta)
+  convolved <- no_shift(s1, s2, alpha, 0,
                         pairwise = T,
                         square_1 = F)[[1]]
   unshift(convolved, theta, c(log_mgf1, log_mgf2), c(1, 1))
@@ -78,34 +74,34 @@ no_shift <- function(log_pmf1, log_pmf2, alpha, delta,
 
   len1 <- length(log_pmf1)
   len2 <- length(log_pmf2)
-  list(true_conv_len, fft_conv_len) <- pairwise_convolution_lengths(len1,
+  list[true_conv_len, fft_conv_len] <- pairwise_convolution_lengths(len1,
                                                                     len2)
-  list(true_conv_len_sq, fft_conv_len_sq) <- pairwise_convolution_lengths(len1,
+  list[true_conv_len_sq, fft_conv_len_sq] <- pairwise_convolution_lengths(len1,
                                                                           len1)
   can_reuse_pairwise <- pairwise && fft_conv_len == fft_conv_len_sq
 
   answer <- NULL
   answer_sq <- NULL
 
-  raw_pmf1 = np.exp(log_pmf1)
-  pmf1 = pad_to_length(raw_pmf1, fft_conv_len)
-  fft1 = fft(pmf1)
-
+  raw_pmf1 <- exp(log_pmf1)
   if (pairwise) {
-    list(direct, bad_places) <- direct_fft_conv(log_pmf1, pmf1, fft1,
+    pmf1 <- pad_to_length(raw_pmf1, fft_conv_len)
+    fft1 <- fft(pmf1)
+
+    list[direct, bad_places] <- direct_fft_conv(log_pmf1, pmf1, fft1,
                                                 log_pmf2,
                                                 true_conv_len, fft_conv_len,
                                                 alpha, delta)
   }
 
   if (square_1) {
-    list(direct_sq, bad_places_sq) <- if (can_reuse_pairwise) {
+    list[direct_sq, bad_places_sq] <- if (can_reuse_pairwise) {
       direct_fft_conv(log_pmf1, raw_pmf1, fft1,
                       NULL,
                       true_conv_len_sq, fft_conv_len_sq,
                       alpha, delta)
     } else {
-      fft1_sq = fft(pad_to_length(raw_pmf1, fft_conv_len_sq))
+      fft1_sq <- fft(pad_to_length(raw_pmf1, fft_conv_len_sq))
       direct_fft_conv(log_pmf1, raw_pmf1, fft1_sq,
                       NULL,
                       true_conv_len_sq, fft_conv_len_sq,
@@ -118,8 +114,8 @@ no_shift <- function(log_pmf1, log_pmf2, alpha, delta,
                                 log_pmf2, ESTIMATE_TWO_SPLITS,
                                 direct, bad_places,
                                 COST_RATIO)
-    if (used_nc) {
-      answer = direct;
+    if (!is.null(used_nc)) {
+      answer <- used_nc;
     }
   }
   if (square_1) {
@@ -127,8 +123,8 @@ no_shift <- function(log_pmf1, log_pmf2, alpha, delta,
                                 log_pmf1, ESTIMATE_TWO_SPLITS,
                                 direct_sq, bad_places_sq,
                                 COST_RATIO_SQUARE)
-    if (used_nc) {
-      answer_sq = direct_sq;
+    if (!is.null(used_nc)) {
+      answer_sq <- used_nc;
     }
   }
 
@@ -137,16 +133,16 @@ no_shift <- function(log_pmf1, log_pmf2, alpha, delta,
   can_reuse_pairwise <- can_reuse_pairwise && need_to_pairwise
 
   if (need_to_pairwise) {
-    limit <- split_limit(len1, len2, None,
-                         len(bad_places),
+    limit <- split_limit(len1, len2, NULL,
+                         length(bad_places),
                          COST_RATIO)
-    maxima <- split_maxima(log_pmf1, fft_conv_len,
-                           alpha, delta,
-                           limit)
+    maxima1 <- split_maxima(log_pmf1, fft_conv_len,
+                            alpha, delta,
+                            limit)
     if (!is.null(maxima1)) {
       limit <- split_limit(len1, len2,
-                           len(maxima1),
-                           len(bad_places),
+                           length(maxima1),
+                           length(bad_places),
                            COST_RATIO)
       maxima2 <- split_maxima(log_pmf2, fft_conv_len,
                               alpha, delta,
@@ -161,13 +157,12 @@ no_shift <- function(log_pmf1, log_pmf2, alpha, delta,
       maxima1_sq <- maxima1
     } else {
       limit <- split_limit(len1, NULL, NULL,
-                           len(bad_places_sq),
+                           length(bad_places_sq),
                            COST_RATIO_SQUARE)
+      maxima1_sq <- split_maxima(log_pmf1, fft_conv_len_sq,
+                                 alpha, delta,
+                                 limit)
     }
-
-    maxima_sq <- split_maxima(log_pmf1, fft_conv_len_sq,
-                              alpha, delta,
-                              limit)
   }
 
   if (need_to_pairwise) {
@@ -175,16 +170,16 @@ no_shift <- function(log_pmf1, log_pmf2, alpha, delta,
                                 log_pmf2, maxima2,
                                 direct, bad_places,
                                 COST_RATIO)
-    if (used_nc) {
-      answer <- direct
+    if (!is.null(used_nc)) {
+      answer <- used_nc
     }
   }
   if (need_to_square) {
-    used_nc <- use_nc_if_better(log_pmf1, maxima1,
-                                log_pmf1, maxima1,
+    used_nc <- use_nc_if_better(log_pmf1, maxima1_sq,
+                                log_pmf1, maxima1_sq,
                                 direct_sq, bad_places_sq,
                                 COST_RATIO_SQUARE)
-    if (used_nc) {
+    if (!is.null(used_nc)) {
       answer_sq <- direct_sq
     }
   }
@@ -194,46 +189,48 @@ no_shift <- function(log_pmf1, log_pmf2, alpha, delta,
   can_reuse_pairwise <- can_reuse_pairwise && need_to_pairwise
 
   if (need_to_pairwise) {
-    splits1 <- splits_from_maxima(log_pmf1, maxima1, delta)
-    splits2 <- splits_from_maxima(log_pmf2, maxima2, delta)
+    splits1 <- splits_from_maxima(log_pmf1, maxima1, delta,
+                                  fft_conv_len)
+    splits2 <- splits_from_maxima(log_pmf2, maxima2, delta,
+                                  fft_conv_len)
   }
   if (need_to_square) {
     if (can_reuse_pairwise) {
       splits1_sq <- splits1
     } else {
-      splits1_sq <- splits_from_maxima(log_pmf1, maxima_sq, delta)
+      splits1_sq <- splits_from_maxima(log_pmf1, maxima1_sq, delta,
+                                       fft_conv_len_sq)
     }
   }
 
   if (need_to_pairwise) {
-    ffts1 <- mvfft(np.exp(splits1))
-    ffts2 <- mvfft(np.exp(splits2))
+    ffts1 <- mvfft(exp(splits1))
+    ffts2 <- mvfft(exp(splits2))
   }
   if (need_to_square) {
     if (can_reuse_pairwise) {
       ffts1_sq <- ffts1
     } else {
-      ffts1_sq <- mvfft(np.exp(splits1_sq))
+      ffts1_sq <- mvfft(exp(splits1_sq))
     }
   }
-
   if (need_to_pairwise) {
     accum <- rep.int(-Inf, true_conv_len)
     for (i in 1:length(maxima1)) {
       normaliser1 <- maxima1[i]
       fft1 <- ffts1[,i]
       for (j in 1:length(maxima2)) {
-        normaliser2 <- maxima2[i]
+        normaliser2 <- maxima2[j]
         fft2 <- ffts2[,j]
 
-        conv <- filtered_mul_ifft(fft1, normaliser1,
-                                  fft2, normaliser2,
-                                  true_conv_len,
-                                  fft_conv_len)
+        conv <- filtered_mult_ifft(fft1, normaliser1,
+                                   fft2, normaliser2,
+                                   true_conv_len,
+                                   fft_conv_len)
         accum <- logaddexp(accum, conv)
       }
     }
-    answer = accum
+    answer <- accum
   }
   if (need_to_square) {
     accum_sq <- rep.int(-Inf, true_conv_len_sq)
@@ -246,7 +243,7 @@ no_shift <- function(log_pmf1, log_pmf2, alpha, delta,
                                       true_conv_len_sq,
                                       fft_conv_len_sq)
       accum_sq <- logaddexp(accum_sq, conv_self)
-      for (j in forward_sq(i + 1, length(maxima1_sq))) {
+      for (j in forward_seq(i + 1, length(maxima1_sq))) {
         normaliser2 <- maxima1_sq[j]
         fft2 <- ffts1_sq[, j]
         conv <- filtered_mult_ifft(fft1, normaliser1,
@@ -261,11 +258,11 @@ no_shift <- function(log_pmf1, log_pmf2, alpha, delta,
 
   if (pairwise) stopifnot(length(answer) == true_conv_len)
   if (square_1) stopifnot(length(answer_sq) == true_conv_len_sq)
-  list(pairwise, square_1)
+  list(answer, answer_sq)
 }
 
 direct_fft_conv <- function(log_pmf1, pmf1, fft1, log_pmf2, true_conv_len, fft_conv_len,
-                alpha, delta) {
+                            alpha, delta) {
   if (is.null(log_pmf2)) {
     norms <- norm(pmf1, type = "2")^2
     fft_conv <- fft1^2
@@ -277,7 +274,7 @@ direct_fft_conv <- function(log_pmf1, pmf1, fft1, log_pmf2, true_conv_len, fft_c
     fft_conv <- fft1 * fft2
   }
 
-  raw_conv <- abs(fft(fft_conv, inverse = T)[1:true_conv_len])
+  raw_conv <- abs(fft(fft_conv, inverse = T)[1:true_conv_len]) / fft_conv_len
   error_level <- error_threshold_factor(fft_conv_len) * norms
   threshold <- error_level * (alpha + 1)
   places_of_interest <- raw_conv <= threshold
@@ -291,7 +288,6 @@ direct_fft_conv <- function(log_pmf1, pmf1, fft1, log_pmf2, true_conv_len, fft_c
   }
 
   log_conv <- log(raw_conv)
-
   if (!any(places_of_interest)) {
     return(list(log_conv, c()))
   }
@@ -316,7 +312,7 @@ direct_fft_conv <- function(log_pmf1, pmf1, fft1, log_pmf2, true_conv_len, fft_c
       fft_support <- fft_support1 * fft_support2
     }
 
-    raw_support <- abs(fft(fft_support, inverse = T)[1:true_conv_len])
+    raw_support <- abs(fft(fft_support, inverse = T)[1:true_conv_len]) / fft_conv_len
     threshold <- error_threshold_factor(fft_conv_len) * 2 * Q
     zeros <- raw_support <= threshold
     log_conv[zeros] <- -Inf
@@ -336,7 +332,7 @@ split_maxima <- function(log_pmf, fft_conv_len, alpha, delta,
   log_delta <- log(delta)
   log_current_max <- log_pmf[sort_idx[1]]
   log_current_norm_sq <- -Inf
-  maxes = expandingVector()
+  maxes <- expandingVector()
   maxes$add(log_current_max)
 
   for (i in 1:length(sort_idx)) {
@@ -366,7 +362,7 @@ splits_from_maxima <- function(log_pmf, split_maxima, delta,
                                fft_conv_len) {
   log_delta <- log(delta)
   pmf_len <- length(log_pmf)
-  num_splits <- length(splits_from_maxima)
+  num_splits <- length(split_maxima)
   splits <- matrix(-Inf, fft_conv_len, num_splits)
 
   for (i in 1:num_splits) {
@@ -377,7 +373,7 @@ splits_from_maxima <- function(log_pmf, split_maxima, delta,
     }
     hi <- split_maxima[i]
 
-    elems <- (lo < log_pmf) & (log_pmf <= hi)
+    elems <- which((lo < log_pmf) & (log_pmf <= hi))
     splits[elems,i] <- log_pmf[elems] - hi
   }
   splits
@@ -400,7 +396,7 @@ split_limit <- function(len1, len2, maxima1, len_bad_places, cost_ratio) {
   lim
 }
 
-maxima_to_len <- function(maxima) {
+maxima_to_length <- function(maxima) {
   if (is.list(maxima)) {
     maxima[[1]]
   } else {
@@ -432,16 +428,15 @@ use_nc_if_better <- function(log_pmf1, maxima1,
                              log_pmf2, maxima2,
                              direct, bad_places,
                              cost_ratio) {
-  nc_is_better <- is_nc_faster(len(log_pmf1), maxima1,
-                               len(log_pmf2), maxima2,
-                               len(bad_places),
+  nc_is_better <- is_nc_faster(length(log_pmf1), maxima1,
+                               length(log_pmf2), maxima2,
+                               length(bad_places),
                                cost_ratio)
 
   if (nc_is_better) {
     convolve_naive_into(direct, bad_places, log_pmf1, log_pmf2)
-    T
   } else {
-    F
+    NULL
   }
 }
 
@@ -451,10 +446,11 @@ filtered_mult_ifft <- function(fft1, normaliser1, fft2, normaliser2,
   norm2 <- norm(fft2, type="2")
 
   threshold <- error_threshold_factor(fft_conv_len) * norm1 * norm2 / fft_conv_len
-  entire_conv <- fft(fft1 * fft2, inverse = T)[1:true_conv_len]
+  entire_conv <- fft(fft1 * fft2, inverse = T)[1:true_conv_len] / fft_conv_len
   filtered <- ifelse(abs(entire_conv) > threshold,
-                     real(entire_conv),
+                     Re(entire_conv),
                      0)
+
   log(filtered) + (normaliser1 + normaliser2)
 }
 

@@ -41,7 +41,7 @@ shift <- function(log_pmf, theta) {
   list(shifted - log_mgf, log_mgf)
 }
 
-log_dynamc_range_shifted <- function(log_pmf, theta) {
+log_dynamic_range_shifted <- function(log_pmf, theta) {
   shifted <- log_pmf + arange(length(log_pmf)) * theta
   lo <- log_min_pos(shifted)
   hi <- log_sum(shifted * 2) / 2
@@ -77,7 +77,7 @@ log1subexp <- function(log_y) {
 
 log_sum <- function(log_u) {
   if (length(log_u) == 0) {
-    return -Inf
+    return(-Inf)
   }
 
   maxi <- which.max(log_u)
@@ -111,6 +111,15 @@ pairwise_convolution_lengths <- function(a, b) {
 iterated_convolution_lengths <- function(a, L) {
   true <- (a - 1) * L + 1
   list(true, nextn(true, factors = 2))
+}
+
+check_na <- function(x) {
+  stopifnot(is.null(x) || all(!is.na(x)))
+}
+
+pad_to_length <- function(v, len, fill = 0) {
+  stopifnot(length(v) <= len)
+  c(v, rep.int(fill, len - length(v)))
 }
 
 # need this to get O(1) appends
