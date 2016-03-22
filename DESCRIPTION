@@ -1,10 +1,9 @@
 Package: sisfft
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Fast and accurate convolutions and tail probabilities
 Version: 0.1
 Date: 2016-02-02
-Author: person("Huon", "Wilson")
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Authors@R: person("Huon", "Wilson", role="cre", email="huonw@maths.usyd.edu.au")
+Description: Algorithms for computing pairwise and iterated convolutions with bounded relative error of each element, and tail probabilities.
+License: Apache2/MIT
 LazyData: TRUE
