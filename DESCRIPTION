@@ -3,7 +3,8 @@ Type: Package
 Title: Fast and accurate convolutions and tail probabilities
 Version: 0.1
 Date: 2016-02-02
-Authors@R: person("Huon", "Wilson", role="cre", email="huonw@maths.usyd.edu.au")
+Author: Huon Wilson <huonw@maths.usyd.edu.au>
+Maintainer: Huon Wilson <huonw@maths.usyd.edu.au>
 Description: Algorithms for computing pairwise and iterated convolutions with bounded relative error of each element, and tail probabilities.
-License: Apache2/MIT
+License: MIT
 LazyData: TRUE

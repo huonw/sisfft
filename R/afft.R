@@ -7,7 +7,6 @@ OPT_BOUND <- 1e4
 ESTIMATE_ONE_SPLIT <- list(1)
 ESTIMATE_TWO_SPLITS <- list(2)
 
-#' @export
 log_convolve <- function(log_pmf1, log_pmf2, alpha, delta = 0) {
   if (delta != 0) {
     no_shift(log_pmf1, log_pmf2, alpha, delta,
