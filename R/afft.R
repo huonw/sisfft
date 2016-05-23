@@ -7,27 +7,27 @@ OPT_BOUND <- 1e4
 ESTIMATE_ONE_SPLIT <- list(1)
 ESTIMATE_TWO_SPLITS <- list(2)
 
-log_convolve <- function(log_pmf1, log_pmf2, alpha, delta = 0) {
+log_convolve <- function(log_pmf1, log_pmf2, beta, delta = 0) {
   if (delta != 0) {
-    no_shift(log_pmf1, log_pmf2, alpha, delta,
+    no_shift(log_pmf1, log_pmf2, beta, delta,
              pairwise = T,
              square_1 = F)[[1]]
   } else {
-    no_lower_bound(log_pmf1, log_pmf2, alpha)
+    no_lower_bound(log_pmf1, log_pmf2, beta)
   }
 }
 
-log_convolve_square <- function(log_pmf, alpha, delta = 0) {
+log_convolve_square <- function(log_pmf, beta, delta = 0) {
   if (delta == 0) {
-    log_convolve(log_pmf, log_pmf, alpha, delta)
+    log_convolve(log_pmf, log_pmf, beta, delta)
   } else {
-    no_shift(log_pmf, c(), alpha, delta,
+    no_shift(log_pmf, c(), beta, delta,
              pairwise = F,
              square_1 = T)[[2]]
   }
 }
 
-log_convolve_and_square <- function(log_pmf1, log_pmf2, alpha, delta = 0) {
+log_convolve_and_square <- function(log_pmf1, log_pmf2, beta, delta = 0) {
   if (delta == 0) {
     # this is a suboptimal approach
     co <- convolve(log_pmf1, log_pmf2, alpha, 0)
@@ -40,7 +40,8 @@ log_convolve_and_square <- function(log_pmf1, log_pmf2, alpha, delta = 0) {
   }
 }
 
-no_lower_bound <- function(log_pmf1, log_pmf2, alpha) {
+no_lower_bound <- function(log_pmf1, log_pmf2, beta) {
+  alpha <- 1 / beta
   list[true_conv_len, fft_conv_len] <- pairwise_convolution_lengths(length(log_pmf1),
                                                                     length(log_pmf2))
   pmf1 <- pad_to_length(exp(log_pmf1), fft_conv_len)
@@ -67,8 +68,9 @@ no_lower_bound <- function(log_pmf1, log_pmf2, alpha) {
   unshift(convolved, theta, c(log_mgf1, log_mgf2), c(1, 1))
 }
 
-no_shift <- function(log_pmf1, log_pmf2, alpha, delta,
+no_shift <- function(log_pmf1, log_pmf2, beta, delta,
                      pairwise, square_1) {
+  alpha <- 1 / beta
   stopifnot(pairwise || square_1)
 
   len1 <- length(log_pmf1)
@@ -300,13 +302,13 @@ direct_fft_conv <- function(log_pmf1, pmf1, fft1, log_pmf2, true_conv_len, fft_c
   }
 
   if (Q <= 2**42 && (!all(support1) || !all(support2))) {
-    padded_support1 <- pad_to_length(support1)
+    padded_support1 <- pad_to_length(support1, fft_conv_len)
     fft_support1 <- fft(padded_support1)
     if (is.null(log_pmf2)) {
       fft_support <- fft_support1^2
     } else {
-      support2 <- log_pmf > -Inf
-      padded_support2 <- pad_to_length(support2)
+      support2 <- log_pmf2 > -Inf
+      padded_support2 <- pad_to_length(support2, fft_conv_len)
       fft_support2 <- fft(padded_support2)
       fft_support <- fft_support1 * fft_support2
     }

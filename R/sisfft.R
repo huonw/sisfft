@@ -2,14 +2,14 @@ OPT_BOUND <- 1e10
 THETA_LIMIT <- 1e4
 
 
-log_convolve_power <- function(log_pmf, L, alpha, delta) {
+log_convolve_power <- function(log_pmf, L, beta, delta) {
   if (L == 0) {
     return(c(0))
   } else if (L == 1) {
     return(log_pmf)
   }
 
-  list[alpha_, delta_] <- accurate_error_bounds(L, 1 / alpha, delta)
+  list[beta_, delta_] <- accurate_error_bounds(L, beta, delta)
 
   answer <- NULL
   pmf_power <- log_pmf
@@ -27,11 +27,11 @@ log_convolve_power <- function(log_pmf, L, alpha, delta) {
         if (need_to_square) {
           list[answer, pmf_power] <- log_convolve_and_square(pmf_power,
                                                              answer,
-                                                             alpha_,
+                                                             beta_,
                                                              delta_)
           squared <- T
         } else {
-          answer <- log_convolve(pmf_power, answer, alpha_, delta_)
+          answer <- log_convolve(pmf_power, answer, beta_, delta_)
         }
       }
     }
@@ -39,14 +39,14 @@ log_convolve_power <- function(log_pmf, L, alpha, delta) {
       break
     }
     if (!squared) {
-      pmf_power <- log_convolve_square(pmf_power, alpha_, delta_)
+      pmf_power <- log_convolve_square(pmf_power, beta_, delta_)
     }
   }
 
   answer
 }
 
-log_pvalue <- function(log_pmf, s0, L, beta) {
+log_pvalue <- function(log_pmf, s0, L, gamma) {
   # convert to 0-based s0 like the python
   s0 <- s0 - 1
   total_len <- iterated_convolution_lengths(length(log_pmf), L)[[1]]
@@ -56,10 +56,10 @@ log_pvalue <- function(log_pmf, s0, L, beta) {
   }
 
   list[ignored, p_lower_preshift, p_upper_preshift] <- bounds(log_pmf, log_pmf, 0, 0.0,
-                                                              s0, L, beta)
+                                                              s0, L, gamma)
   list[sfft_good_preshift, sfft_pval_preshift] <- check_sfft_pvalue(p_lower_preshift,
                                                                     p_upper_preshift,
-                                                                    beta)
+                                                                    gamma)
 
   if (sfft_good_preshift) {
     return(sfft_pval_preshift)
@@ -71,15 +71,15 @@ log_pvalue <- function(log_pmf, s0, L, beta) {
   list[shifted_pmf, log_mgf] <- shift(log_pmf, theta)
 
   list[log_delta, p_lower, p_upper] <- bounds(log_pmf, shifted_pmf, theta, log_mgf,
-                                              s0, L, beta)
+                                              s0, L, gamma)
   list[sfft_good, sfft_pval] <- check_sfft_pvalue(p_lower,
                                                   p_upper,
-                                                  beta)
+                                                  gamma)
   if (sfft_good) {
     return(sfft_pval)
   }
   delta <- exp(log_delta)
-  conv <- log_convolve_power(shifted_pmf, L, alpha, delta)
+  conv <- log_convolve_power(shifted_pmf, L, gamma, delta)
   pvalue <- log_sum(unshift(conv, theta, log_mgf, L)[(s0 + 1):total_len])
   return(pvalue)
 }
@@ -94,12 +94,17 @@ check_sfft_pvalue <- function(p_lower, p_upper, desired_beta) {
 bounds <- function(log_pmf, shifted_pmf, theta, log_mgf, s0, L, desired_beta) {
   stopifnot(theta >= -1)
 
-  list[log_f0, fft_len] <- power_fft(shifted_pmf, L - 1)
-  f0 <- exp(log_f0)
-  error_estimate <- error_threshold_factor(fft_len) * (L - 1)
-  v_lower <- log(pmax(f0 - error_estimate,
-                      0.0))
-  v_upper <- log(f0 + error_estimate)
+  if (L != 2) {
+    list[log_f0, fft_len] <- power_fft(shifted_pmf, L - 1)
+    f0 <- exp(log_f0)
+    error_estimate <- error_threshold_factor(fft_len) * (L - 1)
+    v_lower <- log(pmax(f0 - error_estimate,
+                        0.0))
+    v_upper <- log(f0 + error_estimate)
+  } else {
+    v_lower <- shifted_pmf
+    v_upper <- shifted_pmf
+  }
 
   Q <- length(log_pmf)
   Q1 <- Q - 1

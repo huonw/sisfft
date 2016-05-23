@@ -9,13 +9,13 @@
   \code{log_pvalue} returns the logarithm of an approximation to the
   tail sum from index \code{s0} of the
   convolution of \code{exp(log_pmf)} with itself \code{L} times. The
-  approximation has relative error bounded by \code{beta}. That
+  approximation has relative error bounded by \code{gamma}. That
   is, if \code{P = sum(q[s0:length(q)])} with \code{q = p * p * ... *
     p} (where the \code{*} denote \code{L} convolutions), then the
-  approximation \code{Q} satisfies \code{abs(Q - P) <= beta * P}.
+  approximation \code{Q} satisfies \code{abs(Q - P) <= gamma * P}.
 }
 \usage{
-log_pvalue(log_pmf, s0, L, beta)
+log_pvalue(log_pmf, s0, L, gamma)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -29,8 +29,8 @@ log_pvalue(log_pmf, s0, L, beta)
     a positive integer giving the the number of times to convolve
     \code{log_pmf} with itself.
 }
-  \item{beta}{
-    a positive number less than 0.5.
+  \item{gamma}{
+    a positive number less than 0.5, to control the relative error.
   }
 }
 \value{
@@ -38,9 +38,6 @@ log_pvalue(log_pmf, s0, L, beta)
 }
 \references{
 %% ~put references to the literature/web site here ~
-}
-\author{
-%%  ~~who you are~~
 }
 
 \examples{
