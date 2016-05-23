@@ -13,7 +13,7 @@
  convolution of those vectors after setting any value less than
  \code{delta} to zero, and finally \code{v} the approximation. The
  approximation satisfies
- \code{(1 - beta) * q[i] <= v[i] <= (1 + beta) * q[i]} for all \code{i}.
+ \code{(1 - beta) * q[i] <= v[i] <= (1 + beta) * p[i]} for all \code{i}.
 }
 \usage{
 log_convolve(log_pmf1, log_pmf2, beta, delta = 0)
@@ -39,6 +39,9 @@ log_convolve(log_pmf1, log_pmf2, beta, delta = 0)
 Huon Wilson, Uri Keich, Accurate pairwise convolutions of non-negative
 vectors via FFT, Computational Statistics & Data Analysis, Volume 101,
 September 2016, Pages 300-315, ISSN 0167-9473, http://dx.doi.org/10.1016/j.csda.2016.03.010.
+
+Huon Wilson, Uri Keich, Accurate small tail probabilities of sums of iid
+lattice-valued random variables via FFT, Submitted.
 }
 
 \seealso{
@@ -60,7 +63,7 @@ log_conv_bound <- log_convolve(log(pmf1), log(pmf2), 1e-3, 0.15)
 conv_bound <- exp(log_conv_bound)
 
 exact_bound <- c(0.00, 0.10, 0.25, 0.35, 0.20)
-(exact_bound * (1 - 1e-3) < conv_bound) & (conv_bound < exact * (1 + 1e-3))
+(exact_bound * (1 - 1e-3) <= conv_bound) & (conv_bound <= exact * (1 + 1e-3))
 
 # FFT-based convolution can have large relative error:
 # relative error that behaves nicely with zeros:

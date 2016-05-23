@@ -30,7 +30,8 @@ log_convolve_power(log_pmf, L, beta, delta)
   convolution.}
 
 \references{
-%% ~put references to the literature/web site here ~
+Huon Wilson, Uri Keich, Accurate small tail probabilities of sums of iid
+lattice-valued random variables via FFT, Submitted.
 }
 
 \examples{

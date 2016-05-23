@@ -37,7 +37,8 @@ log_pvalue(log_pmf, s0, L, gamma)
   A number that is the logarithm of the approximation to the tail sum.
 }
 \references{
-%% ~put references to the literature/web site here ~
+Huon Wilson, Uri Keich, Accurate small tail probabilities of sums of iid
+lattice-valued random variables via FFT, Submitted.
 }
 
 \examples{
