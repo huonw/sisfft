@@ -61,5 +61,24 @@ conv_bound <- exp(log_conv_bound)
 
 exact_bound <- c(0.00, 0.10, 0.25, 0.35, 0.20)
 (exact_bound * (1 - 1e-3) < conv_bound) & (conv_bound < exact * (1 + 1e-3))
+
+# FFT-based convolution can have large relative error:
+# relative error that behaves nicely with zeros:
+rel <- function(x, true) {
+    ifelse(true == 0, ifelse(x == 0, 0, Inf), abs((x - true) / true))
+}
+
+# example pmf from Wilson, Keich (2016).
+b <- 1e-5
+c <- 1e-20
+a <- 1 - b - c
+p <- c(0, a, b, c)
+
+exact <- c(0, 0, a^2, 2*a*b, 2*a*c + b^2, 2*b*c, c^2)
+fftc <- convolve(p, rev(p), type = "o")
+afftc <- exp(log_convolve(log(p), log(p), 1e-3, 0))
+
+rel(fftc, exact)
+rel(afftc, exact)
 }
 \keyword{array}
