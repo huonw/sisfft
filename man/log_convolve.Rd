@@ -26,7 +26,7 @@ log_convolve(log_pmf1, log_pmf2, beta, delta = 0)
     a vector that is the logarithm of a pmf.
 }
   \item{beta}{
-    a number less than 0.5, to control the relative error. Note that
+    a positive number less than 0.5, to control the relative error. Note that
     this differs to Wilson, Keich 2016 which describes aFFT-C with
     \code{alpha := 1 / beta}.
 }
@@ -35,6 +35,12 @@ log_convolve(log_pmf1, log_pmf2, beta, delta = 0)
 }
 }
 \value{A vector that is the logarithm of the approximation to the convolution.}
+\details{
+\code{log_convolve} is a log-space implementation of trim-aFFT-C,
+which notably falls back to aFFT-C when \code{delta = 0}. This
+implementation uses the more natural \code{beta = 1/alpha} parameter
+in place of the \code{\alpha} used in the published algorithm.
+}
 \references{
 Huon Wilson, Uri Keich, Accurate pairwise convolutions of non-negative
 vectors via FFT, Computational Statistics & Data Analysis, Volume 101,
