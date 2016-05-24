@@ -9,9 +9,9 @@
   \code{log_convolve_power} returns the logarithm of an approximation
  of the convolution of \code{exp(log_pmf)} with itself \code{L}
  times. The approximation has relative error bounded by \code{beta},
-  along with the subtractive factor of \code{delta}. If \code{p} is the exact convolution and \code{q} is the
+  along with the subtractive factor of \code{delta}. If \code{p} is the exact convolution and \code{v} is the
  approximation, then it satisfies \code{p[i] * (1 - beta) -
- delta <= q[i] <= p[i] * (1 + beta)} for all \code{i}.
+ delta <= v[i] <= p[i] * (1 + beta)} for all \code{i}.
 }
 
 \usage{
