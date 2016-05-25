@@ -39,7 +39,7 @@ log_convolve(log_pmf1, log_pmf2, beta, delta = 0)
 \code{log_convolve} is a log-space implementation of trim-aFFT-C,
 which notably falls back to aFFT-C when \code{delta = 0}. This
 implementation uses the more natural \code{beta = 1/alpha} parameter
-in place of the \code{\alpha} used in the published algorithm.
+in place of the \code{alpha} used in the published algorithm.
 }
 \references{
 Huon Wilson, Uri Keich, Accurate pairwise convolutions of non-negative
