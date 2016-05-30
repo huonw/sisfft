@@ -2,6 +2,8 @@
 
 An R implementation of sisFFT and aFFT-C.
 
+See also: a Python implementation https://github.com/huonw/sisfft-py
+
 Example of using sisFFT to compute a pvalue, along with doing a raw
 convolution power:
 
